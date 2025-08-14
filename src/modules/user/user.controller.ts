@@ -15,6 +15,8 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import type { Request, Response } from 'express';
 import { Authorization } from '../decorators/authorization.decorator';
+import { Authorized } from '../decorators/authorized.decorator';
+import { User } from './entities/user.entity';
 
 @Controller('user')
 export class UserController {
@@ -47,8 +49,8 @@ export class UserController {
   }
   @Authorization()
   @Get('profile')
-  profile(@Req() req: Request) {
-    return req.user;
+  profile(@Authorized() user: User): User {
+    return user;
   }
 
   @Patch(':id')
