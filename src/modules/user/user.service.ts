@@ -14,6 +14,8 @@ import { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { isDev } from '../../utils/is-dev.util';
 import * as ms from 'ms';
+import { RolesService } from '../roles/roles.service';
+import { Role } from '../roles/entities/role.entity';
 
 @Injectable()
 export class UserService {
@@ -23,6 +25,7 @@ export class UserService {
     @InjectModel(User) private readonly userModel: typeof User,
     private readonly tokenService: TokenService,
     private readonly configService: ConfigService,
+    private readonly roleService: RolesService,
   ) {
     this.COOKIE_DOMAIN = this.configService.getOrThrow<string>('cookie_domain');
     this.REFRESH_EXPIRES_IN =
@@ -54,17 +57,18 @@ export class UserService {
       throw new ConflictException('Пользователь с таким email уже существует');
     }
 
-    const hash = await this.hashPassword(createUserDto.password);
+    const hash: string = await this.hashPassword(createUserDto.password);
 
     const newUser: User = await this.userModel.create({
       ...createUserDto,
       password: hash,
     });
 
-    const token: string = await this.auth(res, {
-      id: newUser.id,
-      email: newUser.email,
-    });
+    const role: Role = await this.roleService.getRoleByValue('ADMIN');
+
+    await newUser.$set('roles', role.id);
+
+    const token: string = await this.auth(res, newUser);
 
     delete (newUser as any).dataValues.password;
 
@@ -77,6 +81,9 @@ export class UserService {
   async login(res: Response, loginDto: LoginUserDto) {
     const user: User = await this.userModel.findOne({
       where: { email: loginDto.email },
+      include: {
+        all: true,
+      },
     });
 
     if (!user) {
@@ -92,10 +99,7 @@ export class UserService {
       throw new NotFoundException('Пользователь не найден');
     }
 
-    const token: string = await this.auth(res, {
-      id: user.id,
-      email: user.email,
-    });
+    const token: string = await this.auth(res, user);
 
     delete (user as any).dataValues.password;
 
@@ -126,14 +130,14 @@ export class UserService {
           id: payload.id,
           email: payload.email,
         },
+        include: {
+          all: true,
+        },
       });
 
       if (!user) throw new NotFoundException('Пользователь не найден');
 
-      const token: string = await this.auth(res, {
-        id: user.id,
-        email: user.email,
-      });
+      const token: string = await this.auth(res, user);
 
       delete (user as any).dataValues.password;
 
@@ -144,16 +148,9 @@ export class UserService {
     }
   }
 
-  private async auth(
-    res: Response,
-    user: { id: string; email: string },
-  ): Promise<string> {
-    const { accessToken, refreshToken } = await this.tokenService.generateToken(
-      {
-        id: user.id,
-        email: user.email,
-      },
-    );
+  private async auth(res: Response, user: User): Promise<string> {
+    const { accessToken, refreshToken } =
+      await this.tokenService.generateToken(user);
 
     this.setCookie(res, refreshToken, this.REFRESH_EXPIRES_IN);
 
@@ -186,6 +183,10 @@ export class UserService {
     }
 
     return user;
+  }
+
+  async getUsers() {
+    return await this.userModel.findAll({ include: { all: true } });
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {

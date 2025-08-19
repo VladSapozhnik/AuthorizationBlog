@@ -6,6 +6,9 @@ import { User } from './user/entities/user.entity';
 import { UserModule } from './user/user.module';
 import { TokenModule } from './token/token.module';
 import configuration from '../configurations/configuration';
+import { Role } from './roles/entities/role.entity';
+import { UserRoles } from './roles/entities/user-roles.entity';
+import { RolesModule } from './roles/roles.module';
 
 @Module({
   imports: [
@@ -20,7 +23,7 @@ import configuration from '../configurations/configuration';
         username: configService.get('db_username'),
         password: configService.get('db_password'),
         database: configService.get('db_name'),
-        models: [User],
+        models: [User, Role, UserRoles],
         autoLoadModels: true,
         synchronize: true,
         logging: true,
@@ -28,6 +31,7 @@ import configuration from '../configurations/configuration';
     }),
     UserModule,
     TokenModule,
+    RolesModule,
   ],
 })
 export class AppModule {}

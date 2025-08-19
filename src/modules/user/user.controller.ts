@@ -17,6 +17,7 @@ import type { Request, Response } from 'express';
 import { Authorization } from '../decorators/authorization.decorator';
 import { Authorized } from '../decorators/authorized.decorator';
 import { User } from './entities/user.entity';
+import { RolesAuthorization } from '../decorators/roles-authorization.decorator';
 
 @Controller('user')
 export class UserController {
@@ -29,7 +30,6 @@ export class UserController {
   ) {
     return this.userService.register(res, registerUserDto);
   }
-
   @Post('login')
   login(
     @Res({ passthrough: true }) res: Response,
@@ -51,6 +51,12 @@ export class UserController {
   @Get('profile')
   profile(@Authorized() user: User): User {
     return user;
+  }
+
+  @RolesAuthorization('ADMIN')
+  @Get('users')
+  getUsers(): Promise<User[]> {
+    return this.userService.getUsers();
   }
 
   @Patch(':id')

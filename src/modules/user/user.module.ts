@@ -6,9 +6,17 @@ import { User } from './entities/user.entity';
 import { TokenModule } from '../token/token.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
+import { Role } from '../roles/entities/role.entity';
+import { UserRoles } from '../roles/entities/user-roles.entity';
+import { RolesModule } from '../roles/roles.module';
 
 @Module({
-  imports: [SequelizeModule.forFeature([User]), TokenModule, PassportModule],
+  imports: [
+    SequelizeModule.forFeature([User, Role, UserRoles]),
+    TokenModule,
+    PassportModule,
+    RolesModule,
+  ],
   controllers: [UserController],
   providers: [UserService, JwtStrategy],
 })

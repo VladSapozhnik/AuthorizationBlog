@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { User } from '../user/entities/user.entity';
 
 @Injectable()
 export class TokenService {
@@ -13,8 +14,8 @@ export class TokenService {
       this.configService.getOrThrow<string>('jwt_refresh_token');
   }
 
-  async generateToken(user) {
-    const payload = { id: user.id, email: user.email };
+  async generateToken(user: User) {
+    const payload = { id: user.id, email: user.email, roles: user.roles };
 
     const accessToken = await this.jwtService.signAsync(payload);
 
