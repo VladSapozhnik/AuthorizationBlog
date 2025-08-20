@@ -7,7 +7,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { ROLES_KEY } from '../../decorators/roles.decorator';
+import { Roles } from '../../decorators/roles.decorator';
 import { TokenService } from '../../token/token.service';
 
 @Injectable()
@@ -19,16 +19,20 @@ export class RolesGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext) {
     try {
-      const requiredRoles = this.reflector.getAllAndOverride<string[]>(
-        ROLES_KEY,
-        [context.getHandler(), context.getClass()],
-      );
+      // const requiredRoles = this.reflector.getAllAndOverride<string[]>(ROLES_KEY, [
+      //   context.getHandler(),
+      //   context.getClass(),
+      // ]);
+      const requiredRoles = this.reflector.getAllAndOverride<string[]>(Roles, [
+        context.getHandler(),
+        context.getClass(),
+      ]);
       if (!requiredRoles) {
         return true;
       }
       const req = context.switchToHttp().getRequest();
       const authHeader = req.headers.authorization;
-      console.log(authHeader);
+
       const bearer = authHeader.split(' ')[0];
       const token = authHeader.split(' ')[1];
 
