@@ -16,6 +16,8 @@ import { isDev } from '../../utils/is-dev.util';
 import * as ms from 'ms';
 import { RolesService } from '../roles/roles.service';
 import { Role } from '../roles/entities/role.entity';
+import { AddRoleDto } from './dto/add-role.dto';
+import { BanUserDto } from './dto/ban-user.dto';
 
 @Injectable()
 export class UserService {
@@ -187,6 +189,34 @@ export class UserService {
 
   async getUsers() {
     return await this.userModel.findAll({ include: { all: true } });
+  }
+
+  async addRole(addRoleDto: AddRoleDto): Promise<AddRoleDto> {
+    const user: User = await this.userModel.findOne({
+      where: { id: addRoleDto.userId },
+    });
+    const role: Role = await this.roleService.getRoleByValue(addRoleDto.value);
+
+    if (role && user) {
+      await user.$add('role', role.id);
+
+      return addRoleDto;
+    }
+
+    throw new NotFoundException('Пользователя или роли не найдены!');
+  }
+
+  async banUser(banUserDto: BanUserDto): Promise<User> {
+    const user: User = await this.userModel.findByPk(banUserDto.userId);
+    if (!user) {
+      throw new NotFoundException('Пользователь не найден!');
+    }
+
+    user.banned = true;
+    user.banReason = banUserDto.banReason;
+
+    await user.save();
+    return user;
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {

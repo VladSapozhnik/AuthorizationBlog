@@ -18,6 +18,8 @@ import { Authorization } from '../decorators/authorization.decorator';
 import { Authorized } from '../decorators/authorized.decorator';
 import { User } from './entities/user.entity';
 import { RolesAuthorization } from '../decorators/roles-authorization.decorator';
+import { AddRoleDto } from './dto/add-role.dto';
+import { BanUserDto } from './dto/ban-user.dto';
 
 @Controller('user')
 export class UserController {
@@ -53,10 +55,22 @@ export class UserController {
     return user;
   }
 
-  @RolesAuthorization('ADMIN')
+  @RolesAuthorization('ADMIN', 'USER')
   @Get('users')
   getUsers(): Promise<User[]> {
     return this.userService.getUsers();
+  }
+
+  @RolesAuthorization('ADMIN')
+  @Post('add-role')
+  addRole(@Body() addRoleDto: AddRoleDto): Promise<AddRoleDto> {
+    return this.userService.addRole(addRoleDto);
+  }
+
+  @RolesAuthorization('ADMIN')
+  @Post('ban')
+  banUser(@Body() banUserDto: BanUserDto) {
+    return this.userService.banUser(banUserDto);
   }
 
   @Patch(':id')
