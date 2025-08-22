@@ -9,10 +9,11 @@ import { PassportModule } from '@nestjs/passport';
 import { Role } from '../roles/entities/role.entity';
 import { UserRoles } from '../roles/entities/user-roles.entity';
 import { RolesModule } from '../roles/roles.module';
+import { Post } from '../posts/entities/post.entity';
 
 @Module({
   imports: [
-    SequelizeModule.forFeature([User, Role, UserRoles]),
+    SequelizeModule.forFeature([User, Role, UserRoles, Post]),
     TokenModule,
     PassportModule,
     RolesModule,

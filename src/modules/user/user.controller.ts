@@ -39,12 +39,12 @@ export class UserController {
   ) {
     return this.userService.login(res, loginDto);
   }
-
+  // @Authorization()
   @Post('refresh')
   refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     return this.userService.refresh(req, res);
   }
-
+  @Authorization()
   @Post('logout')
   logout(@Res({ passthrough: true }) res: Response) {
     return this.userService.logout(res);
